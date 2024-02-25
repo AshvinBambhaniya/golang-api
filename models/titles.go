@@ -56,27 +56,9 @@ func (model *TitleModel) GetTitles() ([]Title, error) {
 }
 
 // GetUser get user by id
-func (model *TitleModel) GetById(id string) (Title, error) {
+func (model *TitleModel) GetTitleByID(id string) (Title, error) {
 	title := Title{}
-	found, err := model.db.From(TitleTable).Where(goqu.Ex{
-		"id": id,
-	}).Select(
-		"id",
-		"title",
-		"type",
-		"description",
-		"release_year",
-		"age_certification",
-		"runtime",
-		"genres",
-		"production_countries",
-		"seasons",
-		"imdb_id",
-		"imdb_score",
-		"imdb_votes",
-		"tmdb_popularity",
-		"tmdb_score",
-	).ScanStruct(&title)
+	found, err := model.db.From(TitleTable).Where(goqu.Ex{"id": id}).ScanStruct(&title)
 
 	if err != nil {
 		return title, err
@@ -90,29 +72,22 @@ func (model *TitleModel) GetById(id string) (Title, error) {
 }
 
 func (model *TitleModel) InsertTitle(title Title) (Title, error) {
-	_, err := model.db.Insert(TitleTable).Rows(
-		goqu.Record{
-			"id":                   title.ID,
-			"title":                title.Title,
-			"type":                 title.Type,
-			"description":          title.Description,
-			"release_year":         title.ReleaseYear,
-			"age_certification":    title.AgeCertification,
-			"runtime":              title.Runtime,
-			"genres":               title.Genres,
-			"production_countries": title.ProductionCountry,
-			"seasons":              title.Seasons,
-			"imdb_id":              title.IMDBID,
-			"imdb_score":           title.IMDBScore,
-			"imdb_votes":           title.IMDBVotes,
-			"tmdb_popularity":      title.TMDBPopularity,
-			"tmdb_score":           title.TMDBScore,
-		},
-	).Executor().Exec()
+	_, err := model.db.Insert(TitleTable).Rows(title).Executor().Exec()
+
 	if err != nil {
 		return title, err
 	}
-
-	title, err = model.GetById(title.ID)
 	return title, err
+}
+
+// UpdateTitle updates an existing title
+func (model *TitleModel) UpdateTitle(title Title) error {
+	_, err := model.db.Update(TitleTable).Set(title).Where(goqu.Ex{"id": title.ID}).Executor().Exec()
+	return err
+}
+
+// DeleteTitle deletes a title by its ID
+func (model *TitleModel) DeleteTitle(id string) error {
+	_, err := model.db.Delete(TitleTable).Where(goqu.Ex{"id": id}).Executor().Exec()
+	return err
 }
